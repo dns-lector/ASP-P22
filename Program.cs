@@ -1,7 +1,17 @@
+using ASP_P22.Services.Hash;
+using ASP_P22.Services.Random;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+// реєструємо власні служби у контейнері builder.Services
+// наступну інструкцію можна розуміти як "будуть запитувати IRandomService -
+//  повернути об'єкт класу GuidRandomService"
+//builder.Services.AddSingleton<IRandomService, GuidRandomService>();
+builder.Services.AddSingleton<IRandomService, AbcRandomService>();
+builder.Services.AddSingleton<IHashService, Md5HashService>();
+
 
 var app = builder.Build();
 
