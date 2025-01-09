@@ -1,5 +1,7 @@
+using ASP_P22.Data;
 using ASP_P22.Services.Hash;
 using ASP_P22.Services.Random;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,10 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IRandomService, AbcRandomService>();
 builder.Services.AddSingleton<IHashService, Md5HashService>();
 
+String connectionString = builder.Configuration.GetConnectionString("LocalMS")!;
+builder.Services.AddDbContext<DataContext>(options =>
+    options.UseSqlServer(connectionString)
+);
 
 var app = builder.Build();
 

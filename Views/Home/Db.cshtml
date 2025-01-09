@@ -1,0 +1,57 @@
+﻿@{
+    ViewData["Title"] = "Бази даних";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Підключення бази даних</h1>    
+</div>
+
+<ul>
+    <li>
+        Перевіряємо наявність та доступність СУБД - MSVS Installer - [v] Data Services
+    </li>
+    <li>
+        Встановлюємо драйвери (конектори, бібліотеки) для роботи з відповідною 
+        СУБД та технологією (Entity Framework). На прикладі MS SQL Server 
+        необхідно встановити наступні пакети NuGet (перша цифра у весіях 
+        пакетів - це номер платформи .NET, на яку вони орієнтовані. Слід підбирати
+        у відповідності до налаштувань головного проєкту):
+        <ul>
+            <li>Microsoft.EntityFrameworkCore</li>
+            <li>Microsoft.EntityFrameworkCore.SqlServer</li>
+            <li>Microsoft.EntityFrameworkCore.Tools</li>
+        </ul>
+    </li>
+    <li>
+        Обираємо підхід (Code First / Data First) у залежності від того чи наявна 
+        вже БД, чи ми створюємо нову. Нові проєкти базуються на Code First.
+    </li>
+    <li>
+        Створюємо рядок підключення. На початку роботи - це рядок до неіснуючої БД.
+        У файлі <code>appsettings.json</code> 
+        у розділі <code>ConnectionStrings</code> (якщо розділу немає, то створюємо його)
+        зазначаємо <code>"LocalMS": "Data Source=(LocalDB)\\MSSQLLocalDB;Initial Catalog=asp-p22;Integrated Secutity=True"</code>
+    </li>
+    <li>
+        Створюємо контекст даних. Зазвичай він зберігається в окремій директорії.
+        Описуємо сутності (Entities), додаємо до контексту їх налаштування у
+        <code>OnModelCreating(...)</code>
+    </li>
+    <li>
+        Підключаємо контекст даних як сервіс, передаємо йому рядок підключення
+        (див. <code>Program.cs</code>)
+    </li>
+    <li>
+        Відкриваємо консоль NuGet (Tools - NuGet - Package Manager Console).
+        Створюємо міграцію <code>PM&gt; Add-Migration Initial</code>,
+        застосовуємо міграцію <code>PM&gt; Update-Database</code>
+    </li>
+    <li>
+        Перевіряємо успішність шляхом підключення до БД зі Студії 
+        (Tools - Connect to Database)
+    </li>
+    <li>
+        Інжектуємо DataContext у контролери за схемою, як і сервіси.
+        Контроль: <i>@ViewData["db-info"]</i>
+    </li>
+</ul>

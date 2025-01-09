@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using ASP_P22.Data;
 using ASP_P22.Models;
 using ASP_P22.Services.Hash;
 using ASP_P22.Services.Random;
@@ -15,15 +16,18 @@ namespace ASP_P22.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IRandomService _randomService;
         private readonly IHashService _hashService;
+        private readonly DataContext _dataContext;
 
         public HomeController(
             ILogger<HomeController> logger,
             IRandomService randomService,
-            IHashService hashService)
+            IHashService hashService,
+            DataContext dataContext)
         {
             _logger = logger;
             _randomService = randomService;
             _hashService = hashService;
+            _dataContext = dataContext;
         }
 
         public IActionResult Index()
@@ -46,6 +50,12 @@ namespace ASP_P22.Controllers
             // ViewData - об'єкт для передачі даних від контролера до представлення
             ViewData["_randomService"] = _randomService;
             ViewData["hash123"] = _hashService.Digest("123");
+            return View();
+        }
+
+        public IActionResult Db()
+        {
+            ViewData["db-info"] = $"Users: {_dataContext.Users.Count()}, Accesses: {_dataContext.UsersAccess.Count()}";
             return View();
         }
 
