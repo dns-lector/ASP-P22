@@ -1,5 +1,6 @@
 using ASP_P22.Data;
 using ASP_P22.Services.Hash;
+using ASP_P22.Services.Kdf;
 using ASP_P22.Services.Random;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,7 @@ builder.Services.AddControllersWithViews();
 //builder.Services.AddSingleton<IRandomService, GuidRandomService>();
 builder.Services.AddSingleton<IRandomService, AbcRandomService>();
 builder.Services.AddSingleton<IHashService, Md5HashService>();
+builder.Services.AddSingleton<IKdfService, PbKdf1Service>();
 
 String connectionString = builder.Configuration.GetConnectionString("LocalMS")!;
 builder.Services.AddDbContext<DataContext>(options =>

@@ -1,4 +1,7 @@
-﻿using ASP_P22.Models.User;
+﻿using ASP_P22.Data;
+using ASP_P22.Models.User;
+using ASP_P22.Services.Kdf;
+using ASP_P22.Services.Random;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -6,22 +9,71 @@ using System.Text.RegularExpressions;
 
 namespace ASP_P22.Controllers
 {
-    public class UserController : Controller
+    public class UserController(
+        DataContext dataContext, 
+        IKdfService kdfService,
+        IRandomService randomService,
+        IConfiguration configuration) : Controller
     {
+        private readonly DataContext _dataContext = dataContext;
+        private readonly IKdfService _kdfService = kdfService;
+        private readonly IRandomService _randomService = randomService;
+        private readonly IConfiguration _configuration = configuration;
+
         public IActionResult Index()
         {
+            UserSignUpPageModel pageModel = new();
+
             if (HttpContext.Session.Keys.Contains("formModel"))
             {
                 var formModel = JsonSerializer.Deserialize<UserSignUpFormModel>(
                     HttpContext.Session.GetString("formModel")!
-                );                
-                var (validationStatus, errors) = ValidateUserSignUpFormModel(formModel);
-                ViewData["formModel"] = formModel;
-                ViewData["validationStatus"] = validationStatus;
-                ViewData["errors"] = errors;
+                ); 
+                pageModel.FormModel = formModel;               
+                (pageModel.ValidationStatus, pageModel.Errors) = 
+                    ValidateUserSignUpFormModel(formModel);
+
+
+                // ViewData["formModel"] = formModel;
+                // ViewData["validationStatus"] = validationStatus;
+                // ViewData["errors"] = errors;
+                if(pageModel.ValidationStatus ?? false)
+                {
+                    // Реєструємо у БД
+                    Data.Entities.User user = new()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = formModel!.UserName,
+                        Email = formModel.UserEmail
+                    };
+                    String salt = _randomService.FileName();
+                    var (iter, len) = KdfSettings();
+                    Data.Entities.UserAccess ua = new()
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = user.Id,
+                        Login = formModel.UserLogin,
+                        Salt = salt,
+                        Dk = _kdfService.Dk(formModel.Password1, salt, iter, len)
+                    };
+                    _dataContext.Users.Add(user);
+                    _dataContext.UsersAccess.Add(ua);
+                    _dataContext.SaveChanges();
+                    pageModel.User = user;
+                }
                 HttpContext.Session.Remove("formModel");
             }
-            return View();
+            
+            return View(pageModel);
+        }
+
+        private (uint, uint) KdfSettings()
+        {
+            var kdf = _configuration.GetSection("Kdf");
+            return (
+                kdf.GetSection("IterationCount").Get<uint>(),
+                kdf.GetSection("DkLength").Get<uint>()
+            );
         }
 
         public IActionResult SignUp([FromForm] UserSignUpFormModel formModel)
@@ -79,6 +131,13 @@ namespace ASP_P22.Controllers
             {
                 status = false;
                 errors["UserLogin"] = "Логін не може містити символ ':'";
+            }
+            else if (_dataContext
+                .UsersAccess
+                .Count(ua => ua.Login == formModel.UserLogin) > 0)
+            {
+                status = false;
+                errors["UserLogin"] = "Логін вже використовується";
             }
 
             /* Д.З. Завершити валідацію даних від форми реєстрації користувача
