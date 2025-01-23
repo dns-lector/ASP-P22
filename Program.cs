@@ -1,4 +1,5 @@
 using ASP_P22.Data;
+using ASP_P22.Middleware.Auth;
 using ASP_P22.Services.Hash;
 using ASP_P22.Services.Kdf;
 using ASP_P22.Services.Random;
@@ -26,7 +27,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromSeconds(10);
+    options.IdleTimeout = TimeSpan.FromMinutes(10);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
@@ -41,15 +42,13 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
-
 app.UseSession();
+
+app.UseAuthSession();
 
 app.MapControllerRoute(
     name: "default",

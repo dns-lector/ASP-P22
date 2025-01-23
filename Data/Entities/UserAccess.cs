@@ -1,4 +1,6 @@
-﻿namespace ASP_P22.Data.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace ASP_P22.Data.Entities
 {
     public class UserAccess
     {
@@ -8,6 +10,7 @@
         public String Dk     { get; set; }
         public String Salt   { get; set; }
 
+        [JsonIgnore]
         public User User { get; set; }
     }
 }
