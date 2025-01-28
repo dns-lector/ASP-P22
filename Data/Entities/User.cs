@@ -8,6 +8,10 @@ namespace ASP_P22.Data.Entities
         public string Name  { get; set; } = null!;
         public string Email { get; set; } = null!;
 
+        public String? Phone { get; set; }
+        public String? WorkPosition { get; set; }
+        public String? PhotoUrl { get; set; }
+
         [JsonIgnore]
         public List<UserAccess> Accesses { get; set; } = [];
     }

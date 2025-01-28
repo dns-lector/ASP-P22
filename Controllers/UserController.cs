@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -15,12 +16,14 @@ namespace ASP_P22.Controllers
         DataContext dataContext, 
         IKdfService kdfService,
         IRandomService randomService,
+        ILogger<UserController> logger,
         IConfiguration configuration) : Controller
     {
         private readonly DataContext _dataContext = dataContext;
         private readonly IKdfService _kdfService = kdfService;
         private readonly IRandomService _randomService = randomService;
         private readonly IConfiguration _configuration = configuration;
+        private readonly ILogger<UserController> _logger = logger;
 
         public IActionResult Index()
         {
@@ -46,7 +49,11 @@ namespace ASP_P22.Controllers
                     {
                         Id = Guid.NewGuid(),
                         Name = formModel!.UserName,
-                        Email = formModel.UserEmail
+                        Email = formModel.UserEmail,
+
+                        Phone = formModel.UserPhone,
+                        WorkPosition = formModel.UserPosition,
+                        PhotoUrl = formModel.UserPhotoSavedName
                     };
                     String salt = _randomService.FileName();
                     var (iter, len) = KdfSettings();
@@ -66,6 +73,28 @@ namespace ASP_P22.Controllers
                 HttpContext.Session.Remove("formModel");
             }
             
+            return View(pageModel);
+        }
+
+        public ViewResult Profile()
+        {
+            UserProfilePageModel pageModel = new()
+            {
+                Name = HttpContext.User.Claims
+                    .FirstOrDefault(c => c.Type == ClaimTypes.Name)
+                    ?.Value ?? String.Empty,
+
+                Email = HttpContext.User.Claims
+                    .FirstOrDefault(c => c.Type == ClaimTypes.Email)
+                    ?.Value ?? String.Empty,
+
+                PhotoUrl = "https://img.icons8.com/bubbles/100/000000/user.png",
+                Phone = "0987654321",
+                MostViewed = "ASP",
+                Recent = "Razor",
+                Role = "Web Designer"
+            };
+
             return View(pageModel);
         }
 
@@ -122,19 +151,20 @@ namespace ASP_P22.Controllers
             return Json(message);
         }
 
-        private (uint, uint) KdfSettings()
-        {
-            var kdf = _configuration.GetSection("Kdf");
-            return (
-                kdf.GetSection("IterationCount").Get<uint>(),
-                kdf.GetSection("DkLength").Get<uint>()
-            );
-        }
-
-        public IActionResult SignUp([FromForm] UserSignUpFormModel formModel)
+        public RedirectToActionResult SignUp([FromForm] UserSignUpFormModel formModel)
         {
             // return View("Index");  // Украй не рекомендується переходити на 
             // представлення після прийняття даних форми
+
+            // Перевіряємо чи є у формі файл і зберігаємо його
+            // Оскільки сам файл не серіалізується, у моделі зберігаємо
+            //  ім'я (URL) з яким він збережений
+
+            if(formModel.UserPhoto != null)
+            {
+                _logger.LogInformation("File uploaded {name}",
+                    formModel.UserPhoto.FileName);
+            }
             
             HttpContext.Session.SetString(
                 "formModel",
@@ -143,6 +173,16 @@ namespace ASP_P22.Controllers
             return RedirectToAction("Index");
         }
 
+
+        private (uint, uint) KdfSettings()
+        {
+            var kdf = _configuration.GetSection("Kdf");
+            return (
+                kdf.GetSection("IterationCount").Get<uint>(),
+                kdf.GetSection("DkLength").Get<uint>()
+            );
+        }
+        
         private (bool, Dictionary<String,String>) ValidateUserSignUpFormModel(UserSignUpFormModel? formModel)
         {
             bool status = true;
@@ -261,4 +301,12 @@ Connection: keep-alive
 Found - Reason Phrase
 
  * 
+ */
+
+/* Д.З. Реалізувати валідацію доданих полів.
+ * Оскільки вони опціональні то валідацію проводимо лише за їх наявності
+ * (якщо відсутні - то все гаразд)
+ * Телефон - складається лише з цифр, допускається перший "+", довжина 10-13 цифр
+ * Посада - не коротше 3 символів, не починається з цифри, не містить спецсимволів
+ * ** Ім'я файлу має розширення зі встановленого переліку (.jpg, .png, .webp, .jpeg)
  */

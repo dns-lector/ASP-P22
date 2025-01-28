@@ -1,5 +1,6 @@
 ﻿using ASP_P22.Data.Entities;
 using System.Globalization;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace ASP_P22.Middleware.Auth
@@ -32,7 +33,21 @@ namespace ASP_P22.Middleware.Auth
                     .Deserialize<Data.Entities.User>(
                         context.Session.GetString("authUser")!)!;
 
-                context.Items["authUser"] = user;
+                // Реалізація з об'єктом Entity - занадто конкретна, погано
+                //   дозволяє заміни (переходи на інші способи авторизації)
+                // context.Items["authUser"] = user;
+
+                // Реалізація засобами ASP
+                context.User = new ClaimsPrincipal(
+                    new ClaimsIdentity(
+                        [
+                            new Claim( ClaimTypes.Sid, user.Id.ToString() ),
+                            new Claim( ClaimTypes.Name, user.Name ),
+                            new Claim( ClaimTypes.Email, user.Email ),
+                        ],
+                        nameof(AuthSessionMiddleware)
+                    )
+                );
             }
             await _next(context);
         }
