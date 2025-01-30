@@ -32,6 +32,8 @@ namespace ASP_P22.Controllers
 
         public IActionResult Index()
         {
+            ViewData["path"] = Directory.GetCurrentDirectory();
+
             return View();
         }
 

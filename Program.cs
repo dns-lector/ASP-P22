@@ -3,6 +3,7 @@ using ASP_P22.Middleware.Auth;
 using ASP_P22.Services.Hash;
 using ASP_P22.Services.Kdf;
 using ASP_P22.Services.Random;
+using ASP_P22.Services.Storage;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IRandomService, AbcRandomService>();
 builder.Services.AddSingleton<IHashService, Md5HashService>();
 builder.Services.AddSingleton<IKdfService, PbKdf1Service>();
+builder.Services.AddSingleton<IStorageService, LocalStorageService>();
 
 String connectionString = builder.Configuration.GetConnectionString("LocalMS")!;
 builder.Services.AddDbContext<DataContext>(options =>
