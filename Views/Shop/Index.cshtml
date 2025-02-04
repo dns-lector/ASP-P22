@@ -1,0 +1,85 @@
+﻿@model ASP_P22.Models.Shop.ShopIndexPageModel
+
+@{
+    ViewData["Title"] = "Крамниця";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Крамниця</h1>
+</div>
+
+<div style="overflow-x: scroll; width: 100%">
+    <div style="display: flex;">
+        @foreach(var category in Model.Categories)
+        {
+            @Html.DisplayFor(m => category)
+        }
+    </div>
+</div>
+
+@if (Context.User.Identity?.IsAuthenticated ?? false)
+{
+    <hr/>
+    @if(Model.Errors != null)
+    {
+        if(Model.Errors.Count == 0)
+        {
+            <p>OK</p>
+        }
+        else
+        {
+            <b>ERROR</b>
+        }
+    }
+
+    <form asp-action="AddProduct" method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col">
+                <div class="mb-3">
+                    <label for="nameInput" class="form-label">Назва</label>
+                    <input type="text" class="form-control" id="nameInput"
+                           placeholder="Назва" name="Name">
+                </div>
+
+                <select name="CategoryId" class="form-select" aria-label="Default select example">
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@(category.Id)">@(category.Name)</option>
+                    }
+                </select>
+
+                <div class="mb-3">
+                    <label for="priceInput" class="form-label">Ціна</label>
+                    <input type="number" step="0.01" class="form-control" id="priceInput"
+                           placeholder="100.00" name="Price">
+                </div>
+
+                <div class="mb-3">
+                    <label for="slugInput" class="form-label">Slug</label>
+                    <input type="text" class="form-control" id="slugInput"
+                           placeholder="Slug" name="Slug">
+                </div>
+
+                <button type="submit" class="btn btn-outline-success">Додати</button>"
+            </div>
+
+            <div class="col">
+                <div class="mb-3">
+                    <label for="descriptionTextArea" class="form-label">Опис</label>
+                    <textarea name="Description" class="form-control" id="descriptionTextArea" rows="3"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="stockInput" class="form-label">Кількість на складі</label>
+                    <input type="number" step="1" class="form-control" id="stockInput"
+                           value="10" name="Stock">
+                </div>
+
+                <div class="mb-3">
+                    <label for="formFileMultiple" class="form-label">Multiple files input example</label>
+                    <input name="Images" class="form-control" type="file" id="formFileMultiple" multiple>
+                </div>
+            </div>
+        </div>        
+    </form>
+}
