@@ -3,6 +3,7 @@ using ASP_P22.Models.Shop;
 using ASP_P22.Models.User;
 using ASP_P22.Services.Storage;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace ASP_P22.Controllers
@@ -28,6 +29,31 @@ namespace ASP_P22.Controllers
             return View(model);
         }
 
+        public ViewResult Category([FromRoute] String id)
+        {
+            ShopCategoryPageModel model = new()
+            {
+                Category = _dataContext
+                    .Categories
+                    .Include(c => c.Products)
+                    .FirstOrDefault(c => c.Slug == id)
+            };
+            return View(model);
+        }
+
+        public ViewResult Product([FromRoute] String id)
+        {
+            ShopProductPageModel model = new()
+            {
+                Product = _dataContext
+                    .Products
+                    .Include(p => p.Category)
+                        .ThenInclude(c => c.Products)              
+                    .FirstOrDefault(p => p.Slug == id || p.Id.ToString() == id)
+            };
+            return View(model);
+        }
+
         public RedirectToActionResult AddProduct([FromForm] ShopProductFormModel formModel)
         {
             Dictionary<String, String> errors = [];
@@ -50,10 +76,14 @@ namespace ASP_P22.Controllers
             if(status)  // Валідація пройдена - додаємо до БД
             {
                 // Зберігаємо всі файли
-                String imagesCsv = "";
-                foreach(IFormFile file in formModel!.Images)
+                String? imagesCsv = null;
+                if (formModel!.Images != null)
                 {
-                    imagesCsv += _storageService.Save(file) + ',';
+                    imagesCsv = "";
+                    foreach (IFormFile file in formModel!.Images)
+                    {
+                        imagesCsv += _storageService.Save(file) + ',';
+                    }
                 }
                 _dataContext.Products.Add(new Data.Entities.Product
                 {

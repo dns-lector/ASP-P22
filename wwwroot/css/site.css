@@ -21,6 +21,13 @@ body {
   margin-bottom: 60px;
 }
 
+.product-images {
+    text-align: center;
+}
+.product-images img {
+    max-width: 90%;
+    max-height: 200px;
+}
 
 
 

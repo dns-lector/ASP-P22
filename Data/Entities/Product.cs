@@ -20,3 +20,4 @@ namespace ASP_P22.Data.Entities
         public Category Category { get; set; } = null!;
     }
 }
+// fvoaux3dt8w68ev9biam.jpg,ooch7we2al5361eyfcfz.jpg,269bb9ehy3rua97jugf4.jpg,

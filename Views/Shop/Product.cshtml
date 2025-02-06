@@ -1,0 +1,58 @@
+﻿@model ASP_P22.Models.Shop.ShopProductPageModel
+
+@{
+    ViewData["Title"] = "Крамниця";
+}
+
+@if (Model.Product == null)
+{
+    <div class="text-center">
+        <h1 class="display-4">Крамниця - товар не знайдено</h1>
+    </div>
+}
+else
+{
+    <div class="text-center">
+        <h1 class="display-4">Крамниця - товар "@(Model.Product.Name)"</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-4 product-images">
+            @if(Model.Product.ImagesCsv == null)
+            {
+                <p>У даного товару немає фотографій</p>
+            }
+            else
+            {
+                foreach(String imgUrl in Model.Product.ImagesCsv.Split(",", StringSplitOptions.RemoveEmptyEntries))
+                {
+                    <img src="@("/Storage/Item/" + imgUrl)" alt="imgUrl" />
+                }
+            }
+        </div>
+        <div class="col-8">
+            <h2>@Model.Product.Name</h2>
+            <p>@Model.Product.Description</p>
+            <strong>@Model.Product.Price</strong>
+            <p>Наявність на складі: @Model.Product.Stock шт</p>
+            <p>Товарна група: 
+                <a asp-controller="Shop" 
+                   asp-action="Category"
+                   asp-route-id="@Model.Product.Category.Slug" 
+                   title="@Model.Product.Category.Description">@Model.Product.Category.Name</a>
+            </p>
+        </div>
+    </div>
+
+    <div>
+        <b>Аналогічні товари:</b>
+        @foreach(var product in Model.Product.Category.Products)
+        {
+            if (product.Id != Model.Product.Id)
+            {
+                <a asp-controller="Shop" asp-action="Product" asp-route-id="@(product.Slug ?? product.Id.ToString())">@product.Name</a>
+            }            
+        }
+    </div>
+
+}
