@@ -8,6 +8,8 @@ namespace ASP_P22.Data
         public DbSet<Entities.UserAccess> UsersAccess { get; set; }
         public DbSet<Entities.Category>   Categories  { get; set; }
         public DbSet<Entities.Product>    Products    { get; set; }
+        public DbSet<Entities.Cart>       Carts       { get; set; }
+        public DbSet<Entities.CartDetail> CartDetails { get; set; }
 
 
         public DataContext(DbContextOptions options) : base(options) { }
@@ -38,6 +40,17 @@ namespace ASP_P22.Data
 
             modelBuilder.Entity<Entities.Category>()
                 .HasIndex(c => c.Slug);
+
+            modelBuilder.Entity<Entities.Cart>()
+                .HasOne(c => c.User)
+                .WithMany(u => u.Carts);
+
+            modelBuilder.Entity<Entities.CartDetail>()
+                .HasOne(cd => cd.Product)
+                .WithMany();
+            modelBuilder.Entity<Entities.CartDetail>()
+                .HasOne(cd => cd.Cart)
+                .WithMany(c => c.CartDetails);
 
             modelBuilder.Entity<Entities.Category>().HasData(
                 new Entities.Category
@@ -76,3 +89,17 @@ namespace ASP_P22.Data
         }
     }
 }
+/*
+ [Product]    [CartDetails]       [Cart]      [User]
+    Id  ---\   Id          /------ Id       -- Id
+            -- ProductId  /        UserId -/
+               CartId----/         MomentOpen
+               Cnt                 MomentBuy
+               Price               MomentCancel
+               Moment              Price
+
+
+Д.З. Реалізувати відображення alert-повідомлень від сервера
+щодо додавання товарів до кошику, а також помилок цього процесу
+у вигляді модальних вікон Bootstrap.
+ */

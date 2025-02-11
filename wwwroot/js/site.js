@@ -1,4 +1,36 @@
-﻿document.addEventListener('submit', e => {
+﻿document.addEventListener('DOMContentLoaded', () => {
+    let cartButtons = document.querySelectorAll('[data-cart-product]');
+    for (let btn of cartButtons) {
+        btn.addEventListener('click', addCartClick);
+    }
+});
+
+function addCartClick(e) {
+    e.stopPropagation();
+    const cartElement = e.target.closest("[data-cart-product]");
+    const productId = cartElement.getAttribute("data-cart-product");
+    console.log(productId);
+    fetch("/Shop/AddToCart/" + productId, {
+        method: 'PUT'
+    }).then(r => r.json()).then(j => {
+        console.log(j);
+        if (j.status == 401) {
+            alert("Увійдіть до системи для замовлення товарів");
+            return;
+        }
+        else if (j.status == 201) {
+            confirm("Товар додано до кошику. Перейти до кошику?");
+            return;
+        }
+        else {
+            alert("Щось пішло шкереберть");
+            return;
+        }
+    });
+}
+
+
+document.addEventListener('submit', e => {
     const form = e.target;
     if (form.id === "auth-form") {
         e.preventDefault();
@@ -34,11 +66,3 @@
         console.log(credentials);
     }
 });
-/*
-Д.З. Реалізувати виведення помилок процесу автентифікації 
- у складі самої форми (модального вікна).
- В авторизованому режимі відокремити першу літеру імені
- користувача, перевести її у верхній реєстр та зобразити у 
- кольоровому колі.
- У підказці, що спливає при наведенні, вивести повне ім'я
-*/

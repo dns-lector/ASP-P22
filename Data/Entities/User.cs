@@ -16,5 +16,8 @@ namespace ASP_P22.Data.Entities
 
         [JsonIgnore]
         public List<UserAccess> Accesses { get; set; } = [];
+
+        [JsonIgnore]
+        public List<Cart> Carts { get; set; } = [];
     }
 }
