@@ -48,6 +48,13 @@ body {
     position: relative;
 }
 
+.cart-detail {
+
+}
+    .cart-detail img {
+        max-width: 100%;
+    }
+
 
 .padding {
     padding: 3rem !important

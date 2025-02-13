@@ -3,7 +3,29 @@
     for (let btn of cartButtons) {
         btn.addEventListener('click', addCartClick);
     }
+
+    for (let btn of document.querySelectorAll('[data-cart-detail-dec]')) {
+        btn.addEventListener('click', decCartClick);
+    }
+    for (let btn of document.querySelectorAll('[data-cart-detail-inc]')) {
+        btn.addEventListener('click', incCartClick);
+    }
 });
+
+function decCartClick(e) {
+    e.stopPropagation();
+    const cdElement = e.target.closest("[data-cart-detail-dec]");
+    const cdId = cdElement.getAttribute("data-cart-detail-dec");
+    console.log("- " + cdId);
+
+}
+
+function incCartClick(e) {
+    e.stopPropagation();
+    const cdElement = e.target.closest("[data-cart-detail-inc]");
+    const cdId = cdElement.getAttribute("data-cart-detail-inc");
+    console.log("+ " + cdId);
+}
 
 function addCartClick(e) {
     e.stopPropagation();

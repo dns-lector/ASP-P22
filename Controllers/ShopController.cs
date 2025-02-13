@@ -136,6 +136,63 @@ namespace ASP_P22.Controllers
             return Json(new { status = 201, message = "Created" });
         }
 
+        [HttpPatch]
+        public JsonResult ModifyCart([FromRoute] String id, [FromQuery] int delta)
+        {
+            Guid cartDetailId;
+            try
+            {
+                cartDetailId = Guid.Parse(id);
+            }
+            catch
+            {
+                return Json(new { status = 400, message = "id unrecognized" });
+            }
+            if (delta == 0)
+            {
+                return Json(new { status = 400, message = "dummy action" });
+            }
+            var cartDetail = _dataContext
+                .CartDetails
+                .Include(cd => cd.Product)
+                .Include(cd => cd.Cart)
+                .FirstOrDefault(cd => cd.Id == cartDetailId);
+
+            if (cartDetail is null)
+            {
+                return Json(new { status = 404, message = "id respond no item" });
+            }
+            // Д.З. У методі ModifyCart додати перевірку на власність -
+            // елемент кошику, що змінюється, належить авторизованому користувачу
+            // За відсутності авторизації також надіслати відмову у змінах
+
+            // Перевіряємо delta
+            // 1) що її врахування не призведе до від"ємних чисел
+            if (cartDetail.Cnt + delta < 0)
+            {
+                return Json(new { status = 422, message = "decrement too large" });
+            }
+            // 2) що кількість не перевищує товарні залишки
+            if (cartDetail.Cnt + delta > cartDetail.Product.Stock)
+            {
+                return Json(new { status = 406, message = "increment too large" });
+            }
+
+            if(cartDetail.Cnt + delta == 0)  // видалення останнього
+            {
+                cartDetail.Cart.Price += delta * cartDetail.Product.Price;
+                _dataContext.CartDetails.Remove(cartDetail);
+            }
+            else
+            {
+                cartDetail.Cnt += delta;
+                cartDetail.Price += delta * cartDetail.Product.Price;
+                cartDetail.Cart.Price += delta * cartDetail.Product.Price;
+            }
+            _dataContext.SaveChanges();
+            return Json(new { status = 202, message = "Accepted" });
+        }
+
         public RedirectToActionResult AddProduct([FromForm] ShopProductFormModel formModel)
         {
             Dictionary<String, String> errors = [];
