@@ -81,6 +81,11 @@ namespace ASP_P22.Controllers
             return View(pageModel);
         }
 
+        public ViewResult Cart()
+        {
+            return View();
+        }
+
         public ViewResult Profile([FromRoute] String id)
         {
             UserProfilePageModel pageModel;

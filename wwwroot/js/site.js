@@ -16,15 +16,14 @@ function addCartClick(e) {
         console.log(j);
         if (j.status == 401) {
             alert("Увійдіть до системи для замовлення товарів");
-            return;
         }
         else if (j.status == 201) {
-            confirm("Товар додано до кошику. Перейти до кошику?");
-            return;
+            if (confirm("Товар додано до кошику. Перейти до кошику?")) {
+                window.location = '/User/Cart';
+            }
         }
         else {
             alert("Щось пішло шкереберть");
-            return;
         }
     });
 }
