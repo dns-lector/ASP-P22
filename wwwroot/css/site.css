@@ -55,6 +55,14 @@ body {
         max-width: 100%;
     }
 
+.editable-cnt {
+    border: 1px solid lightgray;
+    cursor: pointer;
+    display: inline-block;
+    font-weight: 600;
+    padding: 6px 8px;
+    vertical-align: middle;
+}
 
 .padding {
     padding: 3rem !important

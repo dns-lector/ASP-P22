@@ -10,7 +10,30 @@
     for (let btn of document.querySelectorAll('[data-cart-detail-inc]')) {
         btn.addEventListener('click', incCartClick);
     }
+    for (let btn of document.querySelectorAll('[data-cart-detail-del]')) {
+        btn.addEventListener('click', delCartClick);
+    }
+    for (let btn of document.querySelectorAll('[data-cart-detail-cnt]')) {
+        btn.addEventListener('keydown', editCartEdit);
+    }
 });
+
+function editCartEdit(e) {
+    console.log(e); return;  // keyCode 48-57 8 46 37 39
+    
+
+    e.stopPropagation();
+    const cdElement = e.target.closest("[data-cart-detail-cnt]");
+    const cdId = cdElement.getAttribute("data-cart-detail-cnt");
+    console.log("edit " + cdId);
+}
+
+function delCartClick(e) {
+    e.stopPropagation();
+    const cdElement = e.target.closest("[data-cart-detail-del]");
+    const cdId = cdElement.getAttribute("data-cart-detail-del");
+    console.log("x " + cdId);
+}
 
 function decCartClick(e) {
     e.stopPropagation();
@@ -18,6 +41,18 @@ function decCartClick(e) {
     const cdId = cdElement.getAttribute("data-cart-detail-dec");
     console.log("- " + cdId);
 
+    fetch(`/Shop/ModifyCart/${cdId}?delta=-1`, {
+        method: 'PATCH'
+    }).then(r => r.json())
+        .then(j => {
+            console.log(j);
+            if (j.status < 300) {
+                location = location;
+            }
+            else {
+                alert("Помилка: " + j.message);
+            }
+        });
 }
 
 function incCartClick(e) {
@@ -25,6 +60,20 @@ function incCartClick(e) {
     const cdElement = e.target.closest("[data-cart-detail-inc]");
     const cdId = cdElement.getAttribute("data-cart-detail-inc");
     console.log("+ " + cdId);
+
+    fetch(`/Shop/ModifyCart/${cdId}?delta=1`, {
+        method: 'PATCH'
+    }).then(r => r.json())
+        .then(j => {
+            console.log(j);
+            if (j.status < 300) {
+                window.location.reload();
+            }
+            else {
+                alert("Помилка: " + j.message);
+            }
+        });
+
 }
 
 function addCartClick(e) {

@@ -41,6 +41,9 @@ else
                    asp-route-id="@Model.Product.Category.Slug" 
                    title="@Model.Product.Category.Description">@Model.Product.Category.Name</a>
             </p>
+            <div data-cart-product="@Model.Product.Id" class="btn btn-success">
+                <i class="bi bi-cart-plus"></i> Купити
+            </div>
         </div>
     </div>
 

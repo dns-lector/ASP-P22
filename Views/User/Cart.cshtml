@@ -13,18 +13,21 @@
 {
     <h2>Кошик активується після входу в систему</h2>
 }
-else if(Model.ActiveCart == null || Model.ActiveCart.CartDetails.Count == 0)
-{
-    <h2>Ваш Кошик поки що порожній. <a asp-controller="Shop" asp-action="Index">Виберіть товари</a></h2>
-}
-else
-{
-    <h2>Товари у кошику:</h2>
-    @foreach (var detail in Model.ActiveCart.CartDetails)
+else {
+    if(Model.ActiveCart == null || Model.ActiveCart.CartDetails.Count == 0)
     {
-        @Html.DisplayFor(m => detail)
+        <h2>Ваш Кошик поки що порожній. </h2>
     }
-    <div class="row">
-        Загальна вартість замовлення:  ₴ @Model.ActiveCart.Price
-    </div>
+    else
+    {
+        <h2>Товари у кошику:</h2>
+        @foreach (var detail in Model.ActiveCart.CartDetails)
+        {
+            @Html.DisplayFor(m => detail)
+        }
+        <div class="row">
+            Загальна вартість замовлення:  ₴ @Model.ActiveCart.Price
+        </div>
+    }
+    <a asp-controller="Shop" asp-action="Index" class="btn btn-primary">Виберіть товари</a>
 }
