@@ -15,24 +15,85 @@
     }
     for (let btn of document.querySelectorAll('[data-cart-detail-cnt]')) {
         btn.addEventListener('keydown', editCartEdit);
+        btn.addEventListener('blur', editCartBlur);
+        btn.addEventListener('focus', editCartFocus);
+    }
+    for (let btn of document.querySelectorAll('[data-cart-cancel]')) {
+        btn.addEventListener('click', cancelCart);
+    }
+    for (let btn of document.querySelectorAll('[data-cart-buy]')) {
+        btn.addEventListener('click', buyCart);
     }
 });
 
-function editCartEdit(e) {
-    console.log(e); return;  // keyCode 48-57 8 46 37 39
-    
+function buyCart() {
 
-    e.stopPropagation();
-    const cdElement = e.target.closest("[data-cart-detail-cnt]");
-    const cdId = cdElement.getAttribute("data-cart-detail-cnt");
-    console.log("edit " + cdId);
+}
+function cancelCart() {
+
+}
+/*
+Додати діалоги погодження операцій роботи з елементами кошику:
+видалення - "Ви видаляєте позицію 'Кіт' з кошику. Підтверджуєте? " [так][ні]
+ручне введення кількості - "Ви змінюєте кількість замовлення 'Кіт' з 2 до 10 шт. Підтверджуєте? " [так][ні]
+** реалізувати діалогами Bootstrap
+*/
+function editCartFocus(e) {
+    e.target.beforeEditing = e.target.innerText;
+}
+function editCartBlur(e) {
+    if (e.target.innerText === "") e.target.innerText = e.target.beforeEditing;
+
+    if (e.target.beforeEditing != e.target.innerText) {
+        const delta = Number(e.target.innerText) - Number(e.target.beforeEditing);
+        const cdElement = e.target.closest("[data-cart-detail-cnt]");
+        const cdId = cdElement.getAttribute("data-cart-detail-cnt");
+
+        console.log(`Changes: ${e.target.beforeEditing} -> ${e.target.innerText} d=${delta} id=${cdId}`);
+
+        fetch(`/Shop/ModifyCart/${cdId}?delta=${delta}`, {
+            method: 'PATCH'
+        }).then(r => r.json())
+            .then(j => {
+                console.log(j);
+                if (j.status < 300) {
+                    window.location.reload();
+                }
+                else {
+                    alert("Помилка: " + j.message);
+                    e.target.innerText = e.target.beforeEditing;
+                }
+            });
+    }    
+}
+function editCartEdit(e) {
+    if (![8, 13, 37, 39, 46, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57].includes(e.keyCode)) {
+        e.preventDefault();
+        return true;
+    }
+    if (e.keyCode == 13) {
+        e.target.blur();
+    }
 }
 
 function delCartClick(e) {
     e.stopPropagation();
     const cdElement = e.target.closest("[data-cart-detail-del]");
     const cdId = cdElement.getAttribute("data-cart-detail-del");
-    console.log("x " + cdId);
+    const spanElement = cdElement.parentNode.querySelector('[data-cart-detail-cnt]');
+    const delta = -Number(spanElement.innerText);
+    fetch(`/Shop/ModifyCart/${cdId}?delta=${delta}`, {
+        method: 'PATCH'
+    }).then(r => r.json())
+        .then(j => {
+            console.log(j);
+            if (j.status < 300) {
+                window.location.reload();
+            }
+            else {
+                alert("Помилка: " + j.message);
+            }
+        });
 }
 
 function decCartClick(e) {
