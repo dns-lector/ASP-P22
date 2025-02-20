@@ -26,10 +26,23 @@
     }
 });
 
-function buyCart() {
+function buyCart(e) {
+    const idElement = e.target.closest("[data-cart-buy]");
+    if (!idElement) throw "buyCart() error: [data-cart-buy] not found";
 
+    const cartId = idElement.getAttribute("data-cart-buy");
+    if (!cartId) throw "buyCart() error: [data-cart-buy] attribute empty or not found";
+
+    console.log(cartId);
 }
-function cancelCart() {
+function cancelCart(e) {
+    const idElement = e.target.closest("[data-cart-cancel]");
+    if (!idElement) throw "cancelCart() error: [data-cart-cancel] not found";
+
+    const cartId = idElement.getAttribute("data-cart-cancel");
+    if (!cartId) throw "cancelCart() error: [data-cart-cancel] attribute empty or not found";
+
+    console.log(cartId);
 
 }
 /*

@@ -193,6 +193,56 @@ namespace ASP_P22.Controllers
             return Json(new { status = 202, message = "Accepted" });
         }
 
+        [HttpDelete]
+        public JsonResult DeleteCart([FromRoute] String id)
+        {
+            // Чи користувач авторизований?
+            String? sid = HttpContext.User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value;
+            if (sid == null)
+            {
+                return Json(new { status = 401, message = "UnAuthorized" });
+            }
+
+            // чи є такий кошик
+            Guid cartId;
+            try { cartId = Guid.Parse(id); }
+            catch { return Json(new { status = 400, message = "id unrecognized" }); }
+
+            var cart = _dataContext
+                .Carts
+                .Include(c => c.CartDetails)
+                    .ThenInclude(cd => cd.Product)
+                .FirstOrDefault(c => c.Id == cartId);
+            if(cart == null)
+            {
+                return Json(new { status = 404, message = "Requested ID Not Found" });
+            }
+
+            // Чи належить він авторизованому користувачеві?           
+            if(cart.UserId.ToString() != sid)
+            {
+                return Json(new { status = 403, message = "Forbidden" });
+            }
+            String cartAction = Request.Headers["Cart-Action"].ToString();
+            if(cartAction == "Buy")
+            {
+                cart.MomentBuy = DateTime.Now;
+                // Скорочуємо кількість товарів
+                foreach(var cd in cart.CartDetails)
+                {
+                    cd.Product.Stock -= cd.Cnt;
+                }
+            }
+            else
+            {
+                cart.MomentCancel = DateTime.Now;
+            }
+
+            _dataContext.SaveChanges();
+            return Json(new { status = 200, message = "OK" });
+        }
+
         public RedirectToActionResult AddProduct([FromForm] ShopProductFormModel formModel)
         {
             Dictionary<String, String> errors = [];
