@@ -34,6 +34,21 @@ function buyCart(e) {
     if (!cartId) throw "buyCart() error: [data-cart-buy] attribute empty or not found";
 
     console.log(cartId);
+
+    fetch("/Shop/CloseCart/" + cartId, {
+        method: 'DELETE',
+        headers: {
+            'Cart-Action': 'Buy',
+        }
+    }).then(r => r.json()).then(j => {
+        if (j.status < 300) {
+            alert("Придбано");
+            window.location.reload();
+        }
+        else {
+            alert("Якась халепа. " + j.message);
+        }
+    });
 }
 function cancelCart(e) {
     const idElement = e.target.closest("[data-cart-cancel]");
@@ -44,6 +59,17 @@ function cancelCart(e) {
 
     console.log(cartId);
 
+    fetch("/Shop/CloseCart/" + cartId, {
+        method: 'DELETE'
+    }).then(r => r.json()).then(j => {
+        if (j.status < 300) {
+            alert("Скасовано");
+            window.location.reload();
+        }
+        else {
+            alert("Якась халепа. " + j.message);
+        }
+    });
 }
 /*
 Додати діалоги погодження операцій роботи з елементами кошику:

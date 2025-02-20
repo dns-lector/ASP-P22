@@ -108,8 +108,21 @@ namespace ASP_P22.Controllers
 
         public ViewResult Profile([FromRoute] String id)
         {
+            // Чи користувач авторизований?
+            String? sid = HttpContext.User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value;
+            var authUser = sid == null ? null : 
+                _dataContext
+                    .Users
+                    .Include(u => u.Carts)
+                        .ThenInclude(c => c.CartDetails)
+                    .FirstOrDefault(u => u.Id.ToString() == sid);
+
             UserProfilePageModel pageModel;
             var profileUser = _dataContext.Users.FirstOrDefault(u => u.Slug == id);
+
+            bool isOwner = authUser?.Slug == profileUser?.Slug;
+
             if (profileUser == null)
             {
                 pageModel = new() { IsFound = false };
@@ -125,7 +138,10 @@ namespace ASP_P22.Controllers
                     Phone = profileUser.Phone ?? "--",
                     MostViewed = id,
                     Recent = "Razor",
-                    Role = profileUser.WorkPosition ?? "--"
+                    Role = profileUser.WorkPosition ?? "--",
+
+                    IsOwner = isOwner,
+                    Carts = isOwner ? authUser!.Carts : [],
                 };
                 /* Name = HttpContext.User.Claims
                         .FirstOrDefault(c => c.Type == ClaimTypes.Name)

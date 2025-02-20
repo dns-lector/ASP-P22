@@ -194,7 +194,7 @@ namespace ASP_P22.Controllers
         }
 
         [HttpDelete]
-        public JsonResult DeleteCart([FromRoute] String id)
+        public JsonResult CloseCart([FromRoute] String id)
         {
             // Чи користувач авторизований?
             String? sid = HttpContext.User.Claims
