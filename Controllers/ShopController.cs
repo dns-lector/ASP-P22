@@ -1,4 +1,5 @@
 ﻿using ASP_P22.Data;
+using ASP_P22.Data.Entities;
 using ASP_P22.Models.Shop;
 using ASP_P22.Models.User;
 using ASP_P22.Services.Storage;
@@ -44,15 +45,57 @@ namespace ASP_P22.Controllers
 
         public ViewResult Product([FromRoute] String id)
         {
-            ShopProductPageModel model = new()
-            {
-                Product = _dataContext
+            String? authUserId = HttpContext.User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value;
+
+            var Product = _dataContext
                     .Products
                     .Include(p => p.Category)
-                        .ThenInclude(c => c.Products)              
-                    .FirstOrDefault(p => p.Slug == id || p.Id.ToString() == id)
+                        .ThenInclude(c => c.Products)
+                    .Include(p => p.Rates)
+                    .FirstOrDefault(p => p.Slug == id || p.Id.ToString() == id);
+            
+            ShopProductPageModel model = new()
+            {
+                Product = Product
             };
+
+            if(Product != null && authUserId != null)
+            {
+                var cds = _dataContext
+                    .CartDetails.Where(cd =>
+                        cd.ProductId == Product.Id &&
+                        cd.Cart.UserId.ToString() == authUserId );
+
+                model.CanUserRate = cds.Any();
+
+                model.UserRate = 
+                    _dataContext.Rates.FirstOrDefault(r =>
+                        r.ProductId == Product.Id &&
+                        r.UserId.ToString() == authUserId);
+
+                model.AuthUserId = authUserId;
+            }
+
             return View(model);
+        }
+
+        [HttpPost]
+        public JsonResult Rate([FromBody] ShopRateFormModel formModel)
+        {
+            Rate rate = new()
+            {
+                Id = Guid.NewGuid(),
+                UserId = Guid.Parse(formModel.UserId),
+                ProductId = Guid.Parse(formModel.ProductId),
+                Rating = formModel.Rating,
+                Comment = formModel.Comment,
+                Moment = DateTime.Now
+            };
+            _dataContext.Rates.Add(rate);
+            _dataContext.SaveChanges();
+
+            return Json(rate);
         }
 
         [HttpPut]
@@ -295,7 +338,14 @@ namespace ASP_P22.Controllers
         }
     }
 }
-/* Д.З. Реалізувати валідацію форми додавання нового товару.
- * Вивести усі повідомлення про помилки валідації у складі 
- * форми.
+/* Д.З. Реалізувати перевірку даних щодо коментаря-оцінки
+ * - може не бути оцінки
+ * - може не бути коментаря
+ * - але не обох одразу
+ * - коментар не коротше 5 символів
+ * ** дату коментування виводити
+ *  = якщо вона є сьогодні, то тільки час, 
+ *  = інакше дата
+ * ** замінити поле введення оцінки "зірочками" 
+ * 
  */

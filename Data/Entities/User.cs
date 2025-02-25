@@ -19,5 +19,8 @@ namespace ASP_P22.Data.Entities
 
         [JsonIgnore]
         public List<Cart> Carts { get; set; } = [];
+
+        [JsonIgnore]
+        public List<Rate>? Rates { get; set; }
     }
 }

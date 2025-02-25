@@ -81,7 +81,7 @@ namespace ASP_P22.Controllers
             return View(pageModel);
         }
 
-        public ViewResult Cart()
+        public ViewResult Cart(String? id)
         {
             UserCartPageModel model = new();
             String? userId =
@@ -93,15 +93,25 @@ namespace ASP_P22.Controllers
             if(userId is not null)
             {
                 Guid uid = Guid.Parse(userId);
-                model.ActiveCart = _dataContext
-                    .Carts
-                    .Include(c => c.CartDetails)
-                        .ThenInclude(d => d.Product)
-                    .FirstOrDefault(c => 
-                        c.UserId == uid &&
-                        c.MomentBuy == null &&
-                        c.MomentCancel == null);
-
+                if (id == null)
+                {
+                    model.ActiveCart = _dataContext
+                        .Carts
+                        .Include(c => c.CartDetails)
+                            .ThenInclude(d => d.Product)
+                        .FirstOrDefault(c =>
+                            c.UserId == uid &&
+                            c.MomentBuy == null &&
+                            c.MomentCancel == null);
+                }
+                else
+                {
+                    model.ActiveCart = _dataContext
+                        .Carts
+                        .Include(c => c.CartDetails)
+                            .ThenInclude(d => d.Product)
+                        .FirstOrDefault(c => c.Id.ToString() == id);
+                }
             }
             return View(model);
         }
@@ -141,7 +151,7 @@ namespace ASP_P22.Controllers
                     Role = profileUser.WorkPosition ?? "--",
 
                     IsOwner = isOwner,
-                    Carts = isOwner ? authUser!.Carts : [],
+                    Carts = isOwner ? authUser!.Carts.OrderByDescending(c => c.MomentOpen).ToList() : [],
                 };
                 /* Name = HttpContext.User.Claims
                         .FirstOrDefault(c => c.Type == ClaimTypes.Name)

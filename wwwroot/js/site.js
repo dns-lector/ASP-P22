@@ -24,7 +24,38 @@
     for (let btn of document.querySelectorAll('[data-cart-buy]')) {
         btn.addEventListener('click', buyCart);
     }
+    const rateButton = document.getElementById("rate-button");
+    if (rateButton) {
+        rateButton.onclick = rateClick;
+    }
 });
+
+function rateClick(e) {
+    const btn = e.target.closest("[data-rate-user]");
+    const userId = btn.getAttribute("data-rate-user");
+    const productId = btn.getAttribute("data-rate-product");
+    const ta = document.getElementById("rate-comment");
+    if (!ta) throw "#rate-comment not found";
+    const comment = ta.value.trim();
+    const rr = document.getElementById("rate-rating");
+    if (!rr) throw "#rate-rating not found";
+    const rating = rr.value;
+    fetch("/Shop/Rate", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            userId, productId, comment, rating
+        })
+    }).then(r => r.json()).then(j => {
+        if (typeof j.id != 'undefined') {
+            window.location.reload();
+        }
+    });
+
+    console.log(userId, productId, comment, rating);
+}
 
 function buyCart(e) {
     const idElement = e.target.closest("[data-cart-buy]");
