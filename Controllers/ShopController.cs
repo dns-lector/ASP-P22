@@ -53,6 +53,7 @@ namespace ASP_P22.Controllers
                     .Include(p => p.Category)
                         .ThenInclude(c => c.Products)
                     .Include(p => p.Rates)
+                        .ThenInclude(r => r.User)
                     .FirstOrDefault(p => p.Slug == id || p.Id.ToString() == id);
             
             ShopProductPageModel model = new()
@@ -83,19 +84,48 @@ namespace ASP_P22.Controllers
         [HttpPost]
         public JsonResult Rate([FromBody] ShopRateFormModel formModel)
         {
-            Rate rate = new()
+            Guid userId;
+            try { userId = Guid.Parse(formModel.UserId); }
+            catch { return Json(new { status = 400, message = "Unparseable UUID 'userId'" }); }
+            
+            Guid productId;
+            try { productId = Guid.Parse(formModel.ProductId); }
+            catch { return Json(new { status = 400, message = "Unparseable UUID 'productId'" }); }
+
+            var user = _dataContext.Users.Include(u => u.Rates).FirstOrDefault(u => u.Id == userId);
+            if(user == null)
             {
-                Id = Guid.NewGuid(),
-                UserId = Guid.Parse(formModel.UserId),
-                ProductId = Guid.Parse(formModel.ProductId),
-                Rating = formModel.Rating,
-                Comment = formModel.Comment,
-                Moment = DateTime.Now
-            };
-            _dataContext.Rates.Add(rate);
+                return Json(new { status = 401, message = $"User '{userId}' unauthorized" });
+            }
+
+            var product = _dataContext.Products.FirstOrDefault(p => p.Id == productId);
+            if(product == null)
+            {
+                return Json(new { status = 404, message = $"Product '{productId}' not found" });
+            }
+
+            var givenRate = user.Rates?.FirstOrDefault(r => r.ProductId == productId);
+            if (givenRate != null)   // оновлення раніше даної оцінки
+            {
+                givenRate.Comment = formModel.Comment;
+                givenRate.Rating = formModel.Rating;
+            }
+            else  // нова оцінка
+            {
+                givenRate = new()
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = Guid.Parse(formModel.UserId),
+                    ProductId = Guid.Parse(formModel.ProductId),
+                    Rating = formModel.Rating,
+                    Comment = formModel.Comment,
+                    Moment = DateTime.Now
+                };
+                _dataContext.Rates.Add(givenRate);
+            }
             _dataContext.SaveChanges();
 
-            return Json(rate);
+            return Json(new { status = 200, message = "OK", data = givenRate });
         }
 
         [HttpPut]

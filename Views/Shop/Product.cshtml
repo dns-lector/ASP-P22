@@ -46,30 +46,52 @@ else
                 <i class="bi bi-cart-plus"></i> Купити
             </div>
             <hr/>
-            Загальна оцінка: @(Model.Product.Rates == null ? "немає даних" : 
+            <div class="row">
+                <div class="col">
+                    Загальна оцінка: @(!Model.Product.Rates.Any() ? "немає даних" :
                 Model.Product.Rates.Average(r => r.Rating))
-            <br/>
-            @if (Model.CanUserRate)
-            {
-                <p>Оцінити: <input id="rate-rating" type="number" value="@(Model.UserRate?.Rating ?? 5)"/></p>
-                <p>
-                    Коментувати: <textarea id="rate-comment">@Model.UserRate?.Comment</textarea>
-                </p>
-                @if (Model.UserRate != null)
-                {
-                    <i>Ви залишили оцінку @Model.UserRate.Moment</i>
-                }
-                <button class="btn btn-outline-secondary"
+                    <br />
+                    @if (Model.CanUserRate)
+                    {
+                        <p>Оцінити: <input id="rate-rating" type="number" value="@(Model.UserRate?.Rating ?? 5)" /></p>
+                        <p>
+                            Коментувати: <textarea id="rate-comment">@Model.UserRate?.Comment</textarea>
+                        </p>
+                        @if (Model.UserRate != null)
+                        {
+                            <i>Ви залишили оцінку @Model.UserRate.Moment</i>
+                        }
+                        <button class="btn btn-outline-secondary"
                         id="rate-button"
                         type="button"
                         data-rate-user="@Model.AuthUserId"
                         data-rate-product="@Model.Product.Id">
-                    Залишити коментар
-                </button>
-            }
+                            Залишити коментар
+                        </button>
+                    }
+                    else
+                    {
+                        <i>Коментувати можуть тільки ті, хто купляв даний товар</i>
+                    }
+                </div>
+                <div class="col">
+                    <h5>Коментарі:</h5>
+                    @foreach (var rate in Model.Product.Rates ?? [])
+                    {
+                        if(rate.Comment != null)
+                        {
+                            @Html.DisplayFor(m => rate)
+                        }
+                    }
+                </div>
+            </div>
+            
         </div>
     </div>
-
+    <br/>
+    <br/>
+    <br/>
+    <br/>
     <div>
         <b>Аналогічні товари:</b>
         @foreach(var product in Model.Product.Category.Products)
