@@ -38,6 +38,7 @@ namespace ASP_P22.Controllers
                 Category = _dataContext
                     .Categories
                     .Include(c => c.Products)
+                        .ThenInclude(p => p.Rates)
                     .FirstOrDefault(c => c.Slug == id)
             };
             return View(model);
@@ -109,6 +110,7 @@ namespace ASP_P22.Controllers
             {
                 givenRate.Comment = formModel.Comment;
                 givenRate.Rating = formModel.Rating;
+                givenRate.Moment = DateTime.Now;
             }
             else  // нова оцінка
             {

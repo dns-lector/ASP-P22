@@ -1,9 +1,30 @@
 ﻿@model ASP_P22.Data.Entities.Rate
 
 <div class="card border-secondary mb-3" >
-    <div class="card-header">@Model.User.Name</div>
+    <div class="card-header">
+        <div class="float-start">
+            <a asp-controller="User"
+               asp-action="Profile"
+               asp-route-id="@Model.User.Slug"
+               title="@(Model.User.Name)">
+                <img src="/Storage/Item/@Model.User.PhotoUrl" alt="Photo" class="rate-comment-img" />
+            </a>
+        </div>
+        <b>@Model.User.Name</b>
+        <br/>
+        <i>@Model.Moment.ToString("MMM d, yyyy")</i>
+    </div>
     <div class="card-body text-secondary">
-        <h5 class="card-title">@Model.Moment.ToString("MMM d, yyyy")</h5>
+        <h5 class="card-title">
+            @for(int i = 0; i < (Model.Rating ?? 0); i++)
+            {
+                <b class="rate-active"><i class="bi bi-star-fill"></i></b>
+            }
+            @for (int i = (Model.Rating ?? 0); i < 5; i++)
+            {
+                <b class="rate-passive"><i class="bi bi-star"></i></b>
+            }
+        </h5>
         <p class="card-text">@Model.Comment</p>
     </div>
 </div>

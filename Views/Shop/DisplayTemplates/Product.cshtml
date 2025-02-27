@@ -13,6 +13,14 @@
         </div>
         <div class="card-footer">
             <strong>₴ @Model.Price</strong>, у наявності - @Model.Stock
+            <i class="bi bi-star"></i> @(Model.Rates.Where(r => (r.Rating ?? 0) > 0).Average(r => r.Rating))
         </div>        
     </div>
 </div>
+@*
+    Д.З. Обмежити висоту блоку з коментарями на сторінці товару. Додати скролінг.
+    У профілі користувача приховати блок з покупками (історією) при перегляді
+    іншими користувачами / анонімному перегляді.
+    ---
+    Встановити Postman https://www.postman.com/downloads/
+*@

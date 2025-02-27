@@ -49,7 +49,7 @@ function rateClick(e) {
             userId, productId, comment, rating
         })
     }).then(r => r.json()).then(j => {
-        if (typeof j.id != 'undefined') {
+        if (typeof j.status != 'undefined' && j.status < 300) {
             window.location.reload();
         }
     });

@@ -48,8 +48,20 @@ body {
     position: relative;
 }
 
-.cart-detail {
+.rate-comment-img {
+    border-radius: 50%;
+    height: 3em;
+    margin-right: 1em;
+    width: 3em;
+}
+.rate-active {
+    color: gold;
+}
+.rate-passive {
+    color: lightgray;
+}
 
+.cart-detail {
 }
     .cart-detail img {
         max-width: 100%;
@@ -71,7 +83,7 @@ body {
 .user-card-full {
     overflow: hidden;
 }
-
+/*
 .card {
     border-radius: 5px;
     -webkit-box-shadow: 0 1px 20px 0 rgba(69,90,100,0.08);
@@ -79,7 +91,7 @@ body {
     border: none;
     margin-bottom: 30px;
 }
-
+*/
 .m-r-0 {
     margin-right: 0px;
 }
