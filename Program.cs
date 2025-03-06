@@ -8,6 +8,15 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000");
+        });
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 // реєструємо власні служби у контейнері builder.Services
@@ -23,6 +32,7 @@ String connectionString = builder.Configuration.GetConnectionString("LocalMS")!;
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(connectionString)
 );
+builder.Services.AddScoped<DataAccessor>();
 
 
 // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/app-state?view=aspnetcore-9.0
@@ -47,6 +57,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors();
 app.UseAuthorization();
 app.UseSession();
 

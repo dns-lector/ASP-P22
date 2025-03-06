@@ -19,7 +19,7 @@ namespace ASP_P22.Data.Entities
         [JsonIgnore]
         public Category Category { get; set; } = null!;
 
-        [JsonIgnore]
+        // [JsonIgnore]
         public List<Rate> Rates { get; set; } = [];
     }
 }
