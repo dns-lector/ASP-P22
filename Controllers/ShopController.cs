@@ -10,17 +10,19 @@ using System.Text.Json;
 
 namespace ASP_P22.Controllers
 {
-    public class ShopController(DataContext dataContext, IStorageService storageService) : Controller
+    public class ShopController(DataAccessor dataAccessor, DataContext dataContext, IStorageService storageService) : Controller
     {
         private readonly DataContext _dataContext = dataContext;
         private readonly IStorageService _storageService = storageService;
+        private readonly DataAccessor _dataAccessor = dataAccessor;
 
         public IActionResult Index()
         {
-            ShopIndexPageModel model = new()
-            {
-                Categories = [.._dataContext.Categories],
-            };
+            // ShopIndexPageModel model = new()
+            // {
+            //     Categories = [.._dataContext.Categories],
+            // };
+            ShopIndexPageModel model = _dataAccessor.CategoriesList();
             if (HttpContext.Session.Keys.Contains("productModelErrors"))
             {
                 model.Errors = JsonSerializer.Deserialize<Dictionary<String, String>>(
