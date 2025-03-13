@@ -19,11 +19,15 @@ namespace ASP_P22.Data
             {
                 c.ImagesCsv = c.ImagesCsv == null ? null : String.Join(',',
                     c.ImagesCsv
-                    .Split(',')
-                    .Select(i => $"{_httpContextAccessor.HttpContext?.Request.Scheme}://{_httpContextAccessor.HttpContext?.Request.Host}/Storage/Item/" + i)
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(i => StoragePrefix + i)
                 );
             }
             return model;
+            /* Д.З. Реалізувати клонування сутностей EF при модифікації адрес
+             * зображень, що передаються у відповідь від бекенда
+             * (метод DataAccessor::CategoriesList)
+             */
         }
         public ShopCategoryPageModel CategoryById(String id)
         {
@@ -33,9 +37,38 @@ namespace ASP_P22.Data
                     .Categories
                     .Include(c => c.Products)
                         .ThenInclude(p => p.Rates)
-                    .FirstOrDefault(c => c.Slug == id)
+                    .FirstOrDefault(c => c.Slug == id) 
             };
+            if (model.Category != null)
+            {
+                model.Category = model.Category with {
+                    Products = model.Category
+                    .Products
+                    .Select(p => p with { 
+                        ImagesCsv = p.ImagesCsv == null
+                        ? StoragePrefix + "no-image.jpg"
+                        : String.Join(',',
+                            p.ImagesCsv
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(i => StoragePrefix + i)
+                        )
+                    }).ToList()
+                };
+            }
+            //foreach(var product in model.Category?.Products ?? [])
+            //{
+            //    product.ImagesCsv = product.ImagesCsv == null 
+            //        ? StoragePrefix + "no-image.jpg"
+            //        : String.Join(',',
+            //            product.ImagesCsv
+            //            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+            //            .Select(i => StoragePrefix + i)
+            //        );
+            //}
+            _dataContext.SaveChanges();
             return model;
         }
+
+        private String StoragePrefix => $"{_httpContextAccessor.HttpContext?.Request.Scheme}://{_httpContextAccessor.HttpContext?.Request.Host}/Storage/Item/";
     }
 }
