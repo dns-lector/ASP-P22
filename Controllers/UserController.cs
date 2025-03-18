@@ -19,6 +19,7 @@ namespace ASP_P22.Controllers
         IRandomService randomService,
         ILogger<UserController> logger,
         IStorageService storageService,
+        DataAccessor dataAccessor, 
         IConfiguration configuration) : Controller
     {
         private readonly DataContext _dataContext = dataContext;
@@ -27,6 +28,7 @@ namespace ASP_P22.Controllers
         private readonly IConfiguration _configuration = configuration;
         private readonly ILogger<UserController> _logger = logger;
         private readonly IStorageService _storageService = storageService;
+        private readonly DataAccessor _dataAccessor = dataAccessor;
 
         public IActionResult Index()
         {
@@ -163,48 +165,19 @@ namespace ASP_P22.Controllers
         [HttpGet]
         public JsonResult Authenticate()
         {
-            String authHeader = Request.Headers.Authorization.ToString();  // "Basic dGVzdDoxMjM="
-            if (String.IsNullOrEmpty(authHeader))
+            try
             {
-                return AuthError("Authorization header required");
+                var ua = _dataAccessor.BasicAuthenticate();
+                HttpContext.Session.SetString(
+                    "authUser",
+                    JsonSerializer.Serialize(ua.User)
+                );
+                return Json("Ok");
             }
-            String authScheme = "Basic ";
-            if( ! authHeader.StartsWith(authScheme))
+            catch (Exception ex)
             {
-                return AuthError($"Authorization scheme error: '{authScheme}' required");
+                return AuthError(ex.Message);
             }
-            String credentials = authHeader[authScheme.Length..];  // "dGVzdDoxMjM="
-
-            String authData = System.Text.Encoding.UTF8.GetString(
-                Base64UrlTextEncoder.Decode(credentials));         // "test:123"
-
-            String[] parts = authData.Split(':', 2);               // ["test", "123"]
-            if(parts.Length != 2)
-            {
-                return AuthError("Authorization credentials malformed");
-            }
-            // login - parts[0], password - parts[1]
-            var ua = _dataContext
-                .UsersAccess
-                .Include(ua => ua.User)
-                .FirstOrDefault(ua => ua.Login == parts[0]);
-
-            if(ua == null)
-            {
-                return AuthError("Authorization rejected");
-            }
-            var (iter, len) = KdfSettings();
-            String dk1 = _kdfService.Dk(parts[1], ua.Salt, iter, len);
-            if(dk1 != ua.Dk)
-            {
-                return AuthError("Authorization rejected.");
-            }
-            // return Json(ua.User);
-            HttpContext.Session.SetString(
-                "authUser",
-                JsonSerializer.Serialize(ua.User)
-            );
-            return Json("Ok");
         }
 
         private JsonResult AuthError(String message)

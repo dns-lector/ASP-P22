@@ -48,40 +48,7 @@ namespace ASP_P22.Controllers
 
         public ViewResult Product([FromRoute] String id)
         {
-            String? authUserId = HttpContext.User.Claims
-                .FirstOrDefault(c => c.Type == ClaimTypes.Sid)?.Value;
-
-            var Product = _dataContext
-                    .Products
-                    .Include(p => p.Category)
-                        .ThenInclude(c => c.Products)
-                    .Include(p => p.Rates)
-                        .ThenInclude(r => r.User)
-                    .FirstOrDefault(p => p.Slug == id || p.Id.ToString() == id);
-            
-            ShopProductPageModel model = new()
-            {
-                Product = Product
-            };
-
-            if(Product != null && authUserId != null)
-            {
-                var cds = _dataContext
-                    .CartDetails.Where(cd =>
-                        cd.ProductId == Product.Id &&
-                        cd.Cart.UserId.ToString() == authUserId );
-
-                model.CanUserRate = cds.Any();
-
-                model.UserRate = 
-                    _dataContext.Rates.FirstOrDefault(r =>
-                        r.ProductId == Product.Id &&
-                        r.UserId.ToString() == authUserId);
-
-                model.AuthUserId = authUserId;
-            }
-
-            return View(model);
+            return View(_dataAccessor.ProductById(id));
         }
 
         [HttpPost]
