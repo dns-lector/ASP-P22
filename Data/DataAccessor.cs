@@ -23,7 +23,40 @@ namespace ASP_P22.Data
         private readonly IKdfService _kdfService = kdfService;
         private readonly IConfiguration _configuration = configuration;
 
-        public Data.Entities.UserAccess? BasicAuthenticate()
+        public Entities.AuthToken CreateTokenForUserAccess(Entities.UserAccess userAccess)
+        {
+            int lifetime = _configuration
+                .GetSection("AuthToken")
+                .GetSection("Lifetime")
+                .Get<int>();
+
+            var token = _dataContext
+                .AuthTokens
+                .FirstOrDefault(t => t.Sub == userAccess.Id && t.Exp > DateTime.Now);
+
+            if (token != null)
+            {
+                token.Exp = token.Exp.AddSeconds(lifetime);
+            }
+            else
+            {
+                token = new Entities.AuthToken
+                {
+                    Jti = Guid.NewGuid(),
+                    Iss = "ASP_P22",
+                    Sub = userAccess.Id,
+                    Aud = null,
+                    Iat = DateTime.Now,
+                    Exp = DateTime.Now.AddSeconds(lifetime),
+                    Nbf = null,
+                };
+                _dataContext.AuthTokens.Add(token);
+            }
+            _dataContext.SaveChanges();
+            return token;
+        }
+
+        public Entities.UserAccess? BasicAuthenticate()
         {
             String? authHeader = _httpContextAccessor.HttpContext?.Request.Headers.Authorization.ToString();  // "Basic dGVzdDoxMjM="
             if (String.IsNullOrEmpty(authHeader))

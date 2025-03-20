@@ -11,6 +11,8 @@ namespace ASP_P22.Data
         public DbSet<Entities.Cart>       Carts       { get; set; }
         public DbSet<Entities.CartDetail> CartDetails { get; set; }
         public DbSet<Entities.Rate>       Rates       { get; set; }
+        public DbSet<Entities.AuthToken>  AuthTokens  { get; set; }
+        public DbSet<Entities.UserRole>   UserRoles   { get; set; }
 
 
         public DataContext(DbContextOptions options) : base(options) { }
@@ -18,6 +20,54 @@ namespace ASP_P22.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasDefaultSchema("site");
+
+            modelBuilder.Entity<Entities.UserAccess>()
+                .HasOne(ua => ua.UserRole)
+                .WithMany()
+                .HasForeignKey(ua => ua.RoleId);
+
+            modelBuilder.Entity<Entities.UserRole>().HasData(
+                new Entities.UserRole { 
+                    Id = Guid.Parse("D1A3D3A4-3A3D-4D1A-3A3D-4D1A3D3A4D1A"), 
+                    Name = "Admin",
+                    Description = "Адміністратор",
+                    CanCreate = true,
+                    CanRead = true,
+                    CanUpdate = true,
+                    CanDelete = true,
+                    IsEmployee = true
+                },
+                new Entities.UserRole { 
+                    Id = Guid.Parse("D1A3D3A4-3A3D-4D1A-3A3D-4D1A3D3A4D2A"), 
+                    Name = "User",
+                    Description = "Користувач",
+                    CanCreate = false,
+                    CanRead = false,
+                    CanUpdate = false,
+                    CanDelete = false,
+                    IsEmployee = false
+                },
+                new Entities.UserRole
+                {
+                    Id = Guid.Parse("D1A3D3A4-3A3D-4D1A-3A3D-4D1A3D3A4D3A"),
+                    Name = "Employee",
+                    Description = "Співробітник",
+                    CanCreate = false,
+                    CanRead = false,
+                    CanUpdate = false,
+                    CanDelete = false,
+                    IsEmployee = true
+                }
+            );
+
+            modelBuilder.Entity<Entities.AuthToken>()
+                .HasKey(t => t.Jti);
+
+            modelBuilder.Entity<Entities.AuthToken>()
+                .HasOne(t => t.UserAccess)
+                .WithMany()
+                .HasPrincipalKey(ua => ua.Id)
+                .HasForeignKey(t => t.Sub);
 
             modelBuilder.Entity<Entities.Rate>()
                 .HasOne(r => r.User)
