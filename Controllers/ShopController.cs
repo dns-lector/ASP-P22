@@ -102,6 +102,10 @@ namespace ASP_P22.Controllers
         [HttpPut]
         public JsonResult AddToCart([FromRoute] String id)
         {
+            /* Д.З. Переробити метод AddToCart в класі ShopController
+             * з урахуванням створення спільного методу AddToCart
+             * у класі DataAccessor
+             */
             String? userId = HttpContext
                 .User
                 .Claims

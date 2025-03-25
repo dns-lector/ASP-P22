@@ -23,6 +23,72 @@ namespace ASP_P22.Data
         private readonly IKdfService _kdfService = kdfService;
         private readonly IConfiguration _configuration = configuration;
 
+        public void AddToCart(String userId, String productId)
+        {
+            Guid userGuid;
+            try { userGuid = Guid.Parse(userId); }
+            catch { throw new Exception("User ID is not valid UUID"); }
+            Guid productGuid;
+            try { productGuid = Guid.Parse(productId); }
+            catch { throw new Exception("Product ID is not valid UUID"); }
+            // Перевіряємо id на належність товару
+            var product = _dataContext
+                .Products
+                .FirstOrDefault(p => p.Id == productGuid);
+            if (product == null)
+            {
+                throw new Exception("Product ID is not found");
+            }
+
+            // Шукаємо відкритий кошик користувача
+            var cart = _dataContext
+                .Carts
+                .FirstOrDefault(
+                    c => c.UserId == userGuid &&
+                    c.MomentBuy == null &&
+                    c.MomentCancel == null);
+
+            if (cart == null)  // немає відкритого - тоді відкриваємо новий
+            {
+                cart = new Data.Entities.Cart()
+                {
+                    Id = Guid.NewGuid(),
+                    MomentOpen = DateTime.Now,
+                    UserId = userGuid,
+                    Price = 0
+                };
+                _dataContext.Carts.Add(cart);
+            }
+
+            // Перевіряємо чи є такий товар у кошику
+            var cd = _dataContext
+                .CartDetails
+                .FirstOrDefault(d =>
+                    d.CartId == cart.Id &&
+                    d.ProductId == product.Id
+                );
+            if (cd != null)  // товар вже є у кошику
+            {
+                cd.Cnt += 1;
+                cd.Price += product.Price;
+            }
+            else   // товару немає - створюємо новий запис
+            {
+                cd = new Data.Entities.CartDetail()
+                {
+                    Id = Guid.NewGuid(),
+                    Moment = DateTime.Now,
+                    CartId = cart.Id,
+                    ProductId = product.Id,
+                    Cnt = 1,
+                    Price = product.Price
+                };
+                _dataContext.CartDetails.Add(cd);
+            }
+            cart.Price += product.Price;
+            _dataContext.SaveChanges();
+        }
+
         public Entities.AuthToken CreateTokenForUserAccess(Entities.UserAccess userAccess)
         {
             int lifetime = _configuration
