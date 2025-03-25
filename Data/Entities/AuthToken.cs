@@ -11,6 +11,6 @@
         public DateTime? Nbf { get; set; }   // Not Before - токен не дійсний до цього часу
 
 
-        public UserAccess? UserAccess { get; set; }
+        public UserAccess UserAccess { get; set; }
     }
 }
