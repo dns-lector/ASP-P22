@@ -94,26 +94,7 @@ namespace ASP_P22.Controllers
                 ?.Value;
             if(userId is not null)
             {
-                Guid uid = Guid.Parse(userId);
-                if (id == null)
-                {
-                    model.ActiveCart = _dataContext
-                        .Carts
-                        .Include(c => c.CartDetails)
-                            .ThenInclude(d => d.Product)
-                        .FirstOrDefault(c =>
-                            c.UserId == uid &&
-                            c.MomentBuy == null &&
-                            c.MomentCancel == null);
-                }
-                else
-                {
-                    model.ActiveCart = _dataContext
-                        .Carts
-                        .Include(c => c.CartDetails)
-                            .ThenInclude(d => d.Product)
-                        .FirstOrDefault(c => c.Id.ToString() == id);
-                }
+                model.ActiveCart = _dataAccessor.GetCartInfo(userId, id);
             }
             return View(model);
         }

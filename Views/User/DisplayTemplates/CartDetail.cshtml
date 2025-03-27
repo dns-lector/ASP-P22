@@ -6,7 +6,7 @@
            asp-action="Product" 
            asp-route-id="@(Model.Product.Slug ?? Model.Product.Id.ToString())">
 
-            <img src="/Storage/Item/@(Model.Product.ImagesCsv?.Split(',').FirstOrDefault() ?? "no-image.jpg")"/>
+            <img src="@(Model.Product.ImagesCsv?.Split(',').FirstOrDefault() ?? "no-image.jpg")"/>
         </a>
     </div>
     <div class="col-2">@Model.Product.Name</div>

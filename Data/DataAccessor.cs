@@ -1,13 +1,17 @@
 ﻿using ASP_P22.Controllers;
+using ASP_P22.Data.Entities;
 using ASP_P22.Models.Shop;
+using ASP_P22.Models.User;
 using ASP_P22.Services.Kdf;
 using ASP_P22.Services.Random;
 using ASP_P22.Services.Storage;
 using Azure.Core;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.ComponentModel;
 using System.Security.Claims;
 
 namespace ASP_P22.Data
@@ -86,6 +90,111 @@ namespace ASP_P22.Data
                 _dataContext.CartDetails.Add(cd);
             }
             cart.Price += product.Price;
+            _dataContext.SaveChanges();
+        }
+
+        public Cart? GetCartInfo(String userId, String? cartId)
+        {
+            Guid userGuid;
+            try { userGuid = Guid.Parse(userId); }
+            catch { throw new Exception("User ID is not valid UUID"); }
+            Cart? cart;
+            if (cartId == null)
+            {
+                cart = _dataContext
+                    .Carts
+                    .Include(c => c.CartDetails)
+                        .ThenInclude(d => d.Product)
+                    .FirstOrDefault(c => 
+                        c.UserId == userGuid &&
+                        c.MomentBuy == null &&
+                        c.MomentCancel == null);
+            }
+            else
+            {
+                Guid cartGuid;
+                try { cartGuid = Guid.Parse(cartId); }
+                catch { throw new Exception("Cart ID is not valid UUID"); }
+                cart = _dataContext
+                    .Carts
+                    .Include(c => c.CartDetails)
+                        .ThenInclude(d => d.Product)
+                    .FirstOrDefault(c => c.Id == cartGuid);
+            }
+            
+            if (cart == null)
+            {
+                return null;
+            }
+            if (cart.UserId != userGuid)
+            {
+                throw new AccessViolationException("Forbidden");
+            }
+            cart = cart with
+            {
+                CartDetails = [.. cart.CartDetails.Select(c => c with
+                {
+                    Product = c.Product with { 
+                        ImagesCsv = c.Product.ImagesCsv == null
+                        ? StoragePrefix + "no-image.jpg"
+                        : String.Join(',',
+                            c.Product.ImagesCsv
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(i => StoragePrefix + i)
+                        ) }
+                })]
+            };
+            return cart;
+        }
+
+        public void ModifyCart(String id, int delta)
+        {
+            Guid cartDetailId;
+            try
+            {
+                cartDetailId = Guid.Parse(id);
+            }
+            catch
+            {
+                throw new Win32Exception(400, "id unrecognized");
+            }
+            if (delta == 0)
+            {
+                throw new Win32Exception(400, "dummy action");
+            }
+            var cartDetail = _dataContext
+                .CartDetails
+                .Include(cd => cd.Product)
+                .Include(cd => cd.Cart)
+                .FirstOrDefault(cd => cd.Id == cartDetailId);
+
+            if (cartDetail is null)
+            {
+                throw new Win32Exception(404, "id respond no item");
+            }
+            // Перевіряємо delta
+            // 1) що її врахування не призведе до від"ємних чисел
+            if (cartDetail.Cnt + delta < 0)
+            {
+                throw new Win32Exception(422, "decrement too large");
+            }
+            // 2) що кількість не перевищує товарні залишки
+            if (cartDetail.Cnt + delta > cartDetail.Product.Stock)
+            {
+                throw new Win32Exception(406, "increment too large");
+            }
+
+            if (cartDetail.Cnt + delta == 0)  // видалення останнього
+            {
+                cartDetail.Cart.Price += delta * cartDetail.Product.Price;
+                _dataContext.CartDetails.Remove(cartDetail);
+            }
+            else
+            {
+                cartDetail.Cnt += delta;
+                cartDetail.Price += delta * cartDetail.Product.Price;
+                cartDetail.Cart.Price += delta * cartDetail.Product.Price;
+            }
             _dataContext.SaveChanges();
         }
 

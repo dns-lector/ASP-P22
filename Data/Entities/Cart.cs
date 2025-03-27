@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace ASP_P22.Data.Entities
 {
-    public class Cart
+    public record Cart
     {
         public Guid      Id           { get; set; }
         public Guid      UserId       { get; set; }
@@ -17,7 +17,7 @@ namespace ASP_P22.Data.Entities
         [JsonIgnore]
         public User      User         { get; set; }
 
-        [JsonIgnore]
+        
         public List<CartDetail> CartDetails { get; set; } = [];
     }
 }
