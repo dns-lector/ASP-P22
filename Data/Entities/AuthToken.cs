@@ -1,4 +1,6 @@
-﻿namespace ASP_P22.Data.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace ASP_P22.Data.Entities
 {
     public class AuthToken
     {
@@ -10,7 +12,7 @@
         public DateTime  Exp { get; set; }   // Expiration - термін дії токену
         public DateTime? Nbf { get; set; }   // Not Before - токен не дійсний до цього часу
 
-
+        [JsonIgnore]
         public UserAccess UserAccess { get; set; }
     }
 }

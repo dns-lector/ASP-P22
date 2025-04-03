@@ -65,7 +65,8 @@ app.UseAuthorization();
 app.UseSession();
 
 app.UseAuthSession();
-app.UseAuthToken();
+// app.UseAuthToken();
+app.UseJwtToken();
 
 app.MapControllerRoute(
     name: "default",
